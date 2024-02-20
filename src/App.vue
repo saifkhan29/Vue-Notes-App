@@ -3,9 +3,10 @@
        <!-- start of modal --> 
        <div class="overlay" @click="showModal = false" v-if="showModal">
         <div class="modal" @click.stop >
-          <textarea v-model="newNote" name="note" id="note" cols="30" rows="10"></textarea>
+          <textarea v-model.trim="newNote" name="note" id="note" cols="30" rows="10"></textarea>
+          <p class="error" v-if="errorMessage" >{{ errorMessage }}</p>
           <div class="modal-btn-cont">
-            <button class="modal-btn bubbly-button mt-4 me-2" @click="animateButton">Add Notes</button>
+            <button class="modal-btn bubbly-button mt-4 me-2" @click="addNote">Add Notes</button>
             <button class="modal-btn close-button mt-4" @click="showModal = false">Close</button>
           </div>
         </div>
@@ -18,14 +19,10 @@
             <h1>Notes</h1>
             <button @click="showModal = true" class="align-self-center notes-button">+</button>
           </div>
-          <div class="col-12 mt-5 cards-container">
-            <div class="card">
-              <p class="card-content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium vero illum eius culpa, delectus corporis laboriosam error velit suscipit modwi!</p>
-              <p class="date">04/07/2024</p>
-            </div>
-            <div class="card">
-              <p class="card-content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium vero illum eius culpa, delectus corporis laboriosam error velit suscipit modwi!</p>
-              <p class="date">04/07/2024</p>
+          <div class="col-12 mt-5 cards-container" v-if="notes.length > 0">
+            <div class="card" v-for="note in notes" :key="note.id" :style="{ backgroundColor: note.backgroundColor}">
+              <p class="card-content">{{ note.text }}</p>
+              <p class="date">{{ note.date.toLocaleDateString("en-US") }}</p>
             </div>
           </div>
         </div>
@@ -41,8 +38,28 @@ import { ref } from "vue"
 const showModal = ref(false)
 const newNote = ref("")
 const notes = ref([])
+const errorMessage = ref(""); 
 
-const addNote = () => {
+const addNote = (e) => {
+  if (newNote.value.length < 10) {
+    return errorMessage.value = "Notes needs to be atleast 10 characters."
+  }
+  animateButton(e)
+  notes.value.push({
+    id: Math.floor(Math.random() * 100000),
+    text: newNote.value,
+    date: new Date(),
+    backgroundColor: getRandomColor()
+  })
+  newNote.value = ""
+  setTimeout(() => {
+    showModal.value = false
+  }, 400)
+  errorMessage.value = ""
+}
+
+function getRandomColor() {
+  return "hsl(" + Math.random() * 360 + ", 100%, 75%";
 }
 
 const animateButton = (e) => {
@@ -81,7 +98,6 @@ const animateButton = (e) => {
 .card{
   width: 225px;
   height: 225px;
-  background-color: #80ed99;
   padding: 10px;
   border-radius: 15px;
   display: flex;
@@ -93,10 +109,12 @@ const animateButton = (e) => {
 
 .card-content{
   font-size: 14px;
+  color: #000;
 }
 .date{
   font-weight: bold;
   font-size: 12.5px;
+  color: #000;
 }
 
 .cards-container{
@@ -129,5 +147,10 @@ const animateButton = (e) => {
 
 .modal-btn{
   max-width: 150px;
+}
+
+.error{
+  color: red;
+  margin: 0;
 }
 </style>
